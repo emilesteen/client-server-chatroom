@@ -33,22 +33,24 @@ func acceptConnections(ln net.Listener) error {
 }
 
 func handleClient(conn net.Conn) {
+	log.Println("Handling client.")
 	connRW := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 
 	// Send a message to the client
+	log.Println("Sending message.")
 	sendStringMessage(connRW, "You are connected to the server.\n")
+	log.Print("Message sent.")
 
-	// Receiver a message from the client
+	// Receive a message from the client
+	log.Println("Receiving message.")
 	message, err := connRW.ReadString('\n')
 	if err != nil {
 		log.Println("Cannot read from connection.")
 	}
+	log.Println("Message received")
 	log.Println(message)
 
-	err = connRW.Flush()
-	if err != nil {
-		log.Println("Flushing connection read writer failed.")
-	}
+	// Close the connection
 	err = conn.Close()
 	if err != nil {
 		log.Println("Closing connection failed.")
@@ -59,6 +61,10 @@ func sendStringMessage(connRW *bufio.ReadWriter, message string) {
 	_, err := connRW.WriteString(message)
 	if err != nil {
 		log.Println("Cannot write to connection.")
+	}
+	err = connRW.Flush()
+	if err != nil {
+		log.Println("Flushing connection read writer failed.")
 	}
 }
 
