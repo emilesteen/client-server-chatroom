@@ -125,10 +125,8 @@ func StartServer() error {
 }
 
 func main() {
-	println("*-START-*\n")
 	err := StartServer()
 	if err != nil {
 		log.Println("Error:", errors.WithStack(err))
 	}
-	println("*-END-*")
 }
