@@ -19,7 +19,7 @@ var buf [512]byte
 func startServer() error {
 	ln, err := listen()
 	if err != nil {
-		return errors.Wrap(err, "Unable to start server because of listen error")
+		return errors.Wrap(err, "Unable to start server because of listen error.")
 	}
 	err = acceptConnections(ln)
 	return err
@@ -28,7 +28,7 @@ func startServer() error {
 func listen() (net.Listener, error) {
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to listen on port %s\n", port)
+		return nil, errors.Wrapf(err, "Unable to listen on port %s.\n", port)
 	}
 	log.Println("Listening on port: " + ln.Addr().String())
 	return ln, nil
@@ -74,7 +74,7 @@ func getClientName(conn net.Conn) (clientName string) {
 	lock.RLock()
 	for name, conn := range clients {
 		if name != clientName {
-			sendMessage(conn, clientName + " joined the room.\n")
+			sendMessage(conn, clientName+" joined the room.\n")
 		}
 	}
 	lock.RUnlock()
@@ -102,7 +102,7 @@ func closeConnection(conn net.Conn, clientName string) {
 	if err != nil {
 		log.Println("Closing connection failed.")
 	}
-	log.Println("Connection closed")
+	log.Println("Connection closed.")
 
 	lock.Lock()
 	delete(clients, clientName)

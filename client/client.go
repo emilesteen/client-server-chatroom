@@ -31,7 +31,7 @@ func openConnection(ip string) (conn net.Conn) {
 	addr := ip + port
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Println("Dialing " + addr + " failed")
+		log.Println("Dialing " + addr + " failed.")
 	}
 	log.Println("Connection open.")
 	return
@@ -42,7 +42,7 @@ func sendMessageRoutine(conn net.Conn) {
 	for {
 		message, err := clReader.ReadString('\n')
 		if err != nil {
-			log.Println("Command line read error")
+			log.Println("Command line read error.")
 		}
 
 		sendMessage(conn, message)
@@ -84,7 +84,7 @@ func closeConnection(conn net.Conn) {
 	log.Println("Closing connection...")
 	err := conn.Close()
 	if err != nil {
-		log.Println("Failed to close connection")
+		log.Println("Failed to close connection.")
 	}
 	log.Println("Connection closed.")
 }
