@@ -5,12 +5,15 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"net"
+	"sync"
 )
 
 const (
 	port = ":8001"
 )
 
+var clients = make(map[string]*net.Conn)
+var lock = sync.RWMutex{}
 var buf [512]byte
 
 func listen() (net.Listener, error) {
@@ -35,18 +38,31 @@ func acceptConnections(ln net.Listener) error {
 	}
 }
 
-func handleClient(conn net.Conn) {
-	log.Println("Handling client...")
-
-
+func getClientName(conn net.Conn) {
 	// Send a message to the client
 	sendStringMessage(conn, "You are connected to the server, choose a username.\n")
 	log.Println("Message sent.")
 
-	// Receive a message from the client
-	message := receiveMessage(conn)
-	fmt.Print(message)
+	var clientName string
 
+	for {
+		// Receive a message from the client
+		clientName = receiveMessage(conn)
+		fmt.Print(clientName)
+		lock.Lock()
+		_, in := clients[clientName]
+		if !in {
+			break
+		}
+		lock.Unlock()
+		sendStringMessage(conn, "The name is already taken, please choose another one.\n")
+		clientName = receiveMessage(conn)
+	}
+
+	sendStringMessage(conn, "Welcome to the room, " + clientName)
+}
+
+func closeConnection(conn net.Conn) {
 	// Close the connection
 	log.Println("Closing connection...")
 	err := conn.Close()
@@ -54,6 +70,14 @@ func handleClient(conn net.Conn) {
 		log.Println("Closing connection failed.")
 	}
 	log.Println("Connection closed")
+}
+
+func handleClient(conn net.Conn) {
+	log.Println("Handling client...")
+
+	getClientName(conn)
+
+	closeConnection(conn)
 }
 
 func sendStringMessage(conn net.Conn, message string) {

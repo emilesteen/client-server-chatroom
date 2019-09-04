@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"github.com/pkg/errors"
 	"log"
 	"net"
+	"os"
 )
 
 const (
@@ -28,6 +31,19 @@ func receiveMessage(conn net.Conn) (message string) {
 	return
 }
 
+func sendMessageRoutine(conn net.Conn) {
+	clReader := bufio.NewReader(os.Stdin)
+	in := ""
+	for in != "!quit\n"  {
+		in, err :=clReader.ReadString('\n')
+		if err != nil {
+			log.Println("Command line read error")
+		}
+		sendStringMessage(conn, in)
+		log.Println("Message sent")
+	}
+}
+
 func StartClient(ip string) error {
 	// Open a readWriter that is connected to the server
 	log.Println("Opening connection")
@@ -40,10 +56,16 @@ func StartClient(ip string) error {
 
 	// Receive a message from the server
 	message := receiveMessage(conn)
-	print(message)
+	fmt.Print(message)
+
+	go sendMessageRoutine(conn)
+
 	// Send a message to the client
-	sendStringMessage(conn, "Acknowledged\n")
-	log.Println("Message sent.")
+	//sendStringMessage(conn, "Acknowledged\n")
+	//log.Println("Message sent.")
+
+	message = receiveMessage(conn)
+	fmt.Print(message)
 
 	// Close connection
 	log.Println("Closing connection...")
