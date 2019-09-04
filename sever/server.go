@@ -71,6 +71,14 @@ func getClientName(conn net.Conn) (clientName string) {
 	}
 
 	sendMessage(conn, "Welcome to the room, "+clientName+"\n")
+	lock.RLock()
+	for name, conn := range clients {
+		if name != clientName {
+			sendMessage(conn, clientName + " joined the room.\n")
+		}
+	}
+	lock.RUnlock()
+
 	return
 }
 
@@ -95,9 +103,12 @@ func closeConnection(conn net.Conn, clientName string) {
 		log.Println("Closing connection failed.")
 	}
 	log.Println("Connection closed")
+
 	lock.Lock()
 	delete(clients, clientName)
 	lock.Unlock()
+
+	broadcastMessage(clientName + " left the room.\n")
 }
 
 func sendMessage(conn net.Conn, message string) {
@@ -117,11 +128,11 @@ func receiveMessage(conn net.Conn) (message string) {
 }
 
 func broadcastMessage(message string) {
-	lock.Lock()
+	lock.RLock()
 	for _, conn := range clients {
 		sendMessage(conn, message)
 	}
-	lock.Unlock()
+	lock.RUnlock()
 }
 
 func main() {
