@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"net"
+	"strings"
 	"sync"
 )
 
@@ -12,7 +13,7 @@ const (
 	port = ":8001"
 )
 
-var clients = make(map[string]*net.Conn)
+var clients = make(map[string]net.Conn)
 var lock = sync.RWMutex{}
 var buf [512]byte
 
@@ -38,20 +39,21 @@ func acceptConnections(ln net.Listener) error {
 	}
 }
 
-func getClientName(conn net.Conn) {
+func getClientName(conn net.Conn) (clientName string) {
 	// Send a message to the client
 	sendMessage(conn, "You are connected to the server, choose a username.\n")
 	log.Println("Message sent.")
 
-	var clientName string
-
 	for {
 		// Receive a message from the client
 		clientName = receiveMessage(conn)
+		clientName = strings.TrimRight(clientName, "\n")
 		fmt.Print(clientName)
 		lock.Lock()
 		_, in := clients[clientName]
 		if !in {
+			clients[clientName] = conn
+			lock.Unlock()
 			break
 		}
 		lock.Unlock()
@@ -59,10 +61,11 @@ func getClientName(conn net.Conn) {
 		clientName = receiveMessage(conn)
 	}
 
-	sendMessage(conn, "Welcome to the room, " + clientName)
+	sendMessage(conn, "Welcome to the room, "+clientName+"\n")
+	return
 }
 
-func closeConnection(conn net.Conn) {
+func closeConnection(conn net.Conn, clientName string) {
 	// Close the connection
 	log.Println("Closing connection...")
 	err := conn.Close()
@@ -70,24 +73,28 @@ func closeConnection(conn net.Conn) {
 		log.Println("Closing connection failed.")
 	}
 	log.Println("Connection closed")
+	lock.Lock()
+	delete(clients, clientName)
+	lock.Unlock()
 }
 
-func echoMessage(conn net.Conn) {
+func echoMessage(conn net.Conn, clientName string) {
 	message := ""
-	for message != "!q\n"{
+	pre := clientName + ": "
+	for message != "!q\n" {
 		message = receiveMessage(conn)
-		sendMessage(conn, message)
+		sendMessage(conn, pre+message)
 	}
 }
 
 func handleClient(conn net.Conn) {
 	log.Println("Handling client...")
 
-	getClientName(conn)
+	clientName := getClientName(conn)
 
-	echoMessage(conn)
+	echoMessage(conn, clientName)
 
-	closeConnection(conn)
+	closeConnection(conn, clientName)
 }
 
 func sendMessage(conn net.Conn, message string) {

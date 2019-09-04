@@ -24,7 +24,8 @@ func sendStringMessage(conn net.Conn, message string) {
 func receiveMessage(conn net.Conn) (message string) {
 	n, err := conn.Read(buf[0:])
 	if err != nil {
-		log.Println("Cannot write to connection.")
+		log.Println("Cannot read from connection.")
+		os.Exit(5)
 	}
 	message = string(buf[0:n])
 	return
@@ -33,13 +34,12 @@ func receiveMessage(conn net.Conn) (message string) {
 func sendMessageRoutine(conn net.Conn) {
 	clReader := bufio.NewReader(os.Stdin)
 	in := ""
-	for in != "!quit\n"  {
+	for in != "!q\n"  {
 		in, err :=clReader.ReadString('\n')
 		if err != nil {
 			log.Println("Command line read error")
 		}
 		sendStringMessage(conn, in)
-		log.Println("Message sent")
 	}
 }
 
