@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	"fmt"
 	"github.com/pkg/errors"
 	"log"
 	"net"
@@ -10,6 +10,8 @@ import (
 const (
 	port = ":8001"
 )
+
+var buf [512]byte
 
 func listen() (net.Listener, error) {
 	ln, err := net.Listen("tcp", port)
@@ -35,37 +37,39 @@ func acceptConnections(ln net.Listener) error {
 
 func handleClient(conn net.Conn) {
 	log.Println("Handling client...")
-	connRW := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+
 
 	// Send a message to the client
-	sendStringMessage(connRW, "You are connected to the server, choose a username.\n")
+	sendStringMessage(conn, "You are connected to the server, choose a username.\n")
 	log.Println("Message sent.")
 
 	// Receive a message from the client
-	message, err := connRW.ReadString('\n')
-	if err != nil {
-		log.Println("Cannot read from connection.")
-	}
-	print(message)
+	message := receiveMessage(conn)
+	fmt.Print(message)
 
 	// Close the connection
 	log.Println("Closing connection...")
-	err = conn.Close()
+	err := conn.Close()
 	if err != nil {
 		log.Println("Closing connection failed.")
 	}
 	log.Println("Connection closed")
 }
 
-func sendStringMessage(connRW *bufio.ReadWriter, message string) {
-	_, err := connRW.WriteString(message)
+func sendStringMessage(conn net.Conn, message string) {
+	_, err := conn.Write([]byte(message))
 	if err != nil {
 		log.Println("Cannot write to connection.")
 	}
-	err = connRW.Flush()
+}
+
+func receiveMessage(conn net.Conn) (message string) {
+	n, err := conn.Read(buf[0:])
 	if err != nil {
-		log.Println("Flushing connection read writer failed.")
+		log.Println("Read error.")
 	}
+	message = string(buf[0:n])
+	return
 }
 
 func StartServer() error {

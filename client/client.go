@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"github.com/pkg/errors"
 	"log"
 	"net"
@@ -11,16 +10,22 @@ const (
 	port = ":8001"
 )
 
-func sendStringMessage(connRW *bufio.ReadWriter, message string) {
-	_, err := connRW.WriteString(message)
+var buf [512]byte
+
+func sendStringMessage(conn net.Conn, message string) {
+	_, err := conn.Write([]byte(message))
 	if err != nil {
 		log.Println("Cannot write to connection.")
 	}
-	// Flush the read writer
-	err = connRW.Flush()
+}
+
+func receiveMessage(conn net.Conn) (message string) {
+	n, err := conn.Read(buf[0:])
 	if err != nil {
-		log.Println("Failed to flush print writer")
+		log.Println("Cannot write to connection.")
 	}
+	message = string(buf[0:n])
+	return
 }
 
 func StartClient(ip string) error {
@@ -31,17 +36,13 @@ func StartClient(ip string) error {
 	if err != nil {
 		return errors.Wrap(err, "Dialing "+addr+" failed")
 	}
-	connRW := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	log.Println("Connection open.")
 
 	// Receive a message from the server
-	message, err := connRW.ReadString('\n')
-	if err != nil {
-		log.Println("Cannot read from connection.")
-	}
+	message := receiveMessage(conn)
 	print(message)
 	// Send a message to the client
-	sendStringMessage(connRW, "Acknowledged\n")
+	sendStringMessage(conn, "Acknowledged\n")
 	log.Println("Message sent.")
 
 	// Close connection
