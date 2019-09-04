@@ -40,7 +40,7 @@ func acceptConnections(ln net.Listener) error {
 
 func getClientName(conn net.Conn) {
 	// Send a message to the client
-	sendStringMessage(conn, "You are connected to the server, choose a username.\n")
+	sendMessage(conn, "You are connected to the server, choose a username.\n")
 	log.Println("Message sent.")
 
 	var clientName string
@@ -55,11 +55,11 @@ func getClientName(conn net.Conn) {
 			break
 		}
 		lock.Unlock()
-		sendStringMessage(conn, "The name is already taken, please choose another one.\n")
+		sendMessage(conn, "The name is already taken, please choose another one.\n")
 		clientName = receiveMessage(conn)
 	}
 
-	sendStringMessage(conn, "Welcome to the room, " + clientName)
+	sendMessage(conn, "Welcome to the room, " + clientName)
 }
 
 func closeConnection(conn net.Conn) {
@@ -72,15 +72,25 @@ func closeConnection(conn net.Conn) {
 	log.Println("Connection closed")
 }
 
+func echoMessage(conn net.Conn) {
+	message := ""
+	for message != "!q\n"{
+		message = receiveMessage(conn)
+		sendMessage(conn, message)
+	}
+}
+
 func handleClient(conn net.Conn) {
 	log.Println("Handling client...")
 
 	getClientName(conn)
 
+	echoMessage(conn)
+
 	closeConnection(conn)
 }
 
-func sendStringMessage(conn net.Conn, message string) {
+func sendMessage(conn net.Conn, message string) {
 	_, err := conn.Write([]byte(message))
 	if err != nil {
 		log.Println("Cannot write to connection.")

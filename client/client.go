@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/pkg/errors"
 	"log"
 	"net"
 	"os"
@@ -44,13 +43,23 @@ func sendMessageRoutine(conn net.Conn) {
 	}
 }
 
-func StartClient(ip string) error {
+func closeConnection(conn net.Conn) {
+	// Close connection
+	log.Println("Closing connection...")
+	err := conn.Close()
+	if err != nil {
+		log.Println("Failed to close connection")
+	}
+	log.Println("Connection closed.")
+}
+
+func Client(ip string) {
 	// Open a readWriter that is connected to the server
 	log.Println("Opening connection")
 	addr := ip + port
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		return errors.Wrap(err, "Dialing "+addr+" failed")
+		log.Println("Dialing "+addr+" failed")
 	}
 	log.Println("Connection open.")
 
@@ -60,25 +69,15 @@ func StartClient(ip string) error {
 
 	go sendMessageRoutine(conn)
 
-	// Send a message to the client
-	//sendStringMessage(conn, "Acknowledged\n")
-	//log.Println("Message sent.")
-
-	message = receiveMessage(conn)
-	fmt.Print(message)
-
-	// Close connection
-	log.Println("Closing connection...")
-	err = conn.Close()
-	if err != nil {
-		return errors.Wrap(err, "Failed to close connection.")
+	for message != "!q\n"  {
+		message = receiveMessage(conn)
+		fmt.Print(message)
 	}
-	log.Println("Connection closed.")
 
-	return nil
+	closeConnection(conn)
 }
 
 func main() {
-	StartClient("127.0.0.1")
+	Client("127.0.0.1")
 }
 
