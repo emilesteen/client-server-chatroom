@@ -14,20 +14,26 @@ const (
 
 var buf [512]byte
 
-func sendStringMessage(conn net.Conn, message string) {
-	_, err := conn.Write([]byte(message))
-	if err != nil {
-		log.Println("Cannot write to connection.")
-	}
+func client(ip string) {
+	conn := openConnection(ip)
+
+	// Receive welcome message
+	message := receiveMessage(conn)
+	fmt.Print(message)
+
+	go sendMessageRoutine(conn)
+	receiveMessageRoutine(conn)
+	closeConnection(conn)
 }
 
-func receiveMessage(conn net.Conn) (message string) {
-	n, err := conn.Read(buf[0:])
+func openConnection(ip string) (conn net.Conn) {
+	log.Println("Opening connection...")
+	addr := ip + port
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Println("Cannot read from connection.")
-		os.Exit(5)
+		log.Println("Dialing " + addr + " failed")
 	}
-	message = string(buf[0:n])
+	log.Println("Connection open.")
 	return
 }
 
@@ -39,7 +45,7 @@ func sendMessageRoutine(conn net.Conn) {
 			log.Println("Command line read error")
 		}
 
-		sendStringMessage(conn, message)
+		sendMessage(conn, message)
 
 		if message == "!q\n" {
 			break
@@ -57,14 +63,20 @@ func receiveMessageRoutine(conn net.Conn) {
 	}
 }
 
-func openConnection(ip string) (conn net.Conn) {
-	log.Println("Opening connection...")
-	addr := ip + port
-	conn, err := net.Dial("tcp", addr)
+func sendMessage(conn net.Conn, message string) {
+	_, err := conn.Write([]byte(message))
 	if err != nil {
-		log.Println("Dialing " + addr + " failed")
+		log.Println("Cannot write to connection.")
 	}
-	log.Println("Connection open.")
+}
+
+func receiveMessage(conn net.Conn) (message string) {
+	n, err := conn.Read(buf[0:])
+	if err != nil {
+		log.Println("Cannot read from connection.")
+		os.Exit(5)
+	}
+	message = string(buf[0:n])
 	return
 }
 
@@ -75,18 +87,6 @@ func closeConnection(conn net.Conn) {
 		log.Println("Failed to close connection")
 	}
 	log.Println("Connection closed.")
-}
-
-func client(ip string) {
-	conn := openConnection(ip)
-
-	// Receive welcome message
-	message := receiveMessage(conn)
-	fmt.Print(message)
-
-	go sendMessageRoutine(conn)
-	receiveMessageRoutine(conn)
-	closeConnection(conn)
 }
 
 func main() {

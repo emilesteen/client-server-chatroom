@@ -16,6 +16,15 @@ var clients = make(map[string]net.Conn)
 var lock = sync.RWMutex{}
 var buf [512]byte
 
+func startServer() error {
+	ln, err := listen()
+	if err != nil {
+		return errors.Wrap(err, "Unable to start server because of listen error")
+	}
+	err = acceptConnections(ln)
+	return err
+}
+
 func listen() (net.Listener, error) {
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
@@ -35,6 +44,13 @@ func acceptConnections(ln net.Listener) error {
 		}
 		go handleClient(conn)
 	}
+}
+
+func handleClient(conn net.Conn) {
+	log.Println("Handling client...")
+	clientName := getClientName(conn)
+	echoMessages(conn, clientName)
+	closeConnection(conn, clientName)
 }
 
 func getClientName(conn net.Conn) (clientName string) {
@@ -58,6 +74,20 @@ func getClientName(conn net.Conn) (clientName string) {
 	return
 }
 
+func echoMessages(conn net.Conn, clientName string) {
+	message := ""
+	pre := clientName + ": "
+	for {
+		message = receiveMessage(conn)
+		if message == "!q\n" {
+			sendMessage(conn, "!q\n")
+			break
+		} else {
+			broadcastMessage(pre + message)
+		}
+	}
+}
+
 func closeConnection(conn net.Conn, clientName string) {
 	log.Println("Closing connection...")
 	err := conn.Close()
@@ -68,27 +98,6 @@ func closeConnection(conn net.Conn, clientName string) {
 	lock.Lock()
 	delete(clients, clientName)
 	lock.Unlock()
-}
-
-func echoMessages(conn net.Conn, clientName string) {
-	message := ""
-	pre := clientName + ": "
-	for {
-		message = receiveMessage(conn)
-		if message == "!q\n" {
-			sendMessage(conn, "!q\n")
-			break
-		} else {
-			broadcastMessage(pre+message)
-		}
-	}
-}
-
-func handleClient(conn net.Conn) {
-	log.Println("Handling client...")
-	clientName := getClientName(conn)
-	echoMessages(conn, clientName)
-	closeConnection(conn, clientName)
 }
 
 func sendMessage(conn net.Conn, message string) {
@@ -115,17 +124,8 @@ func broadcastMessage(message string) {
 	lock.Unlock()
 }
 
-func StartServer() error {
-	ln, err := listen()
-	if err != nil {
-		return errors.Wrap(err, "Unable to start server because of listen error")
-	}
-	err = acceptConnections(ln)
-	return err
-}
-
 func main() {
-	err := StartServer()
+	err := startServer()
 	if err != nil {
 		log.Println("Error:", errors.WithStack(err))
 	}
