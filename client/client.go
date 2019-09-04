@@ -33,18 +33,42 @@ func receiveMessage(conn net.Conn) (message string) {
 
 func sendMessageRoutine(conn net.Conn) {
 	clReader := bufio.NewReader(os.Stdin)
-	in := ""
-	for in != "!q\n"  {
-		in, err :=clReader.ReadString('\n')
+	for {
+		message, err := clReader.ReadString('\n')
 		if err != nil {
 			log.Println("Command line read error")
 		}
-		sendStringMessage(conn, in)
+
+		sendStringMessage(conn, message)
+
+		if message == "!q\n" {
+			break
+		}
 	}
 }
 
+func receiveMessageRoutine(conn net.Conn) {
+	for {
+		message := receiveMessage(conn)
+		if message == "!q\n" {
+			break
+		}
+		fmt.Print(message)
+	}
+}
+
+func openConnection(ip string) (conn net.Conn) {
+	log.Println("Opening connection...")
+	addr := ip + port
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		log.Println("Dialing " + addr + " failed")
+	}
+	log.Println("Connection open.")
+	return
+}
+
 func closeConnection(conn net.Conn) {
-	// Close connection
 	log.Println("Closing connection...")
 	err := conn.Close()
 	if err != nil {
@@ -53,31 +77,18 @@ func closeConnection(conn net.Conn) {
 	log.Println("Connection closed.")
 }
 
-func Client(ip string) {
-	// Open a readWriter that is connected to the server
-	log.Println("Opening connection")
-	addr := ip + port
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		log.Println("Dialing "+addr+" failed")
-	}
-	log.Println("Connection open.")
+func client(ip string) {
+	conn := openConnection(ip)
 
-	// Receive a message from the server
+	// Receive welcome message
 	message := receiveMessage(conn)
 	fmt.Print(message)
 
 	go sendMessageRoutine(conn)
-
-	for message != "!q\n"  {
-		message = receiveMessage(conn)
-		fmt.Print(message)
-	}
-
+	receiveMessageRoutine(conn)
 	closeConnection(conn)
 }
 
 func main() {
-	Client("127.0.0.1")
+	client("127.0.0.1")
 }
-

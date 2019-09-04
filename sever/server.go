@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/pkg/errors"
 	"log"
 	"net"
@@ -22,17 +21,16 @@ func listen() (net.Listener, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to listen on port %s\n", port)
 	}
-	log.Println("Listening on port: " + ln.Addr().String() + "\n")
+	log.Println("Listening on port: " + ln.Addr().String())
 	return ln, nil
 }
 
 func acceptConnections(ln net.Listener) error {
 	for {
 		conn, err := ln.Accept()
-		log.Println("Accepting a connection request.")
-		//log.Println("Client connected with address: " + conn.LocalAddr().String())
+		log.Println("Client connected with address: " + conn.LocalAddr().String())
 		if err != nil {
-			errors.Wrap(err, "Failed to accept connection request")
+			log.Println("Failed to accept connection request.")
 			continue
 		}
 		go handleClient(conn)
@@ -40,15 +38,11 @@ func acceptConnections(ln net.Listener) error {
 }
 
 func getClientName(conn net.Conn) (clientName string) {
-	// Send a message to the client
 	sendMessage(conn, "You are connected to the server, choose a username.\n")
-	log.Println("Message sent.")
 
 	for {
-		// Receive a message from the client
 		clientName = receiveMessage(conn)
 		clientName = strings.TrimRight(clientName, "\n")
-		fmt.Print(clientName)
 		lock.Lock()
 		_, in := clients[clientName]
 		if !in {
@@ -58,7 +52,6 @@ func getClientName(conn net.Conn) (clientName string) {
 		}
 		lock.Unlock()
 		sendMessage(conn, "The name is already taken, please choose another one.\n")
-		clientName = receiveMessage(conn)
 	}
 
 	sendMessage(conn, "Welcome to the room, "+clientName+"\n")
@@ -66,7 +59,6 @@ func getClientName(conn net.Conn) (clientName string) {
 }
 
 func closeConnection(conn net.Conn, clientName string) {
-	// Close the connection
 	log.Println("Closing connection...")
 	err := conn.Close()
 	if err != nil {
@@ -78,22 +70,24 @@ func closeConnection(conn net.Conn, clientName string) {
 	lock.Unlock()
 }
 
-func echoMessage(conn net.Conn, clientName string) {
+func echoMessages(conn net.Conn, clientName string) {
 	message := ""
 	pre := clientName + ": "
-	for message != "!q\n" {
+	for {
 		message = receiveMessage(conn)
-		sendMessage(conn, pre+message)
+		if message == "!q\n" {
+			sendMessage(conn, "!q\n")
+			break
+		} else {
+			broadcastMessage(pre+message)
+		}
 	}
 }
 
 func handleClient(conn net.Conn) {
 	log.Println("Handling client...")
-
 	clientName := getClientName(conn)
-
-	echoMessage(conn, clientName)
-
+	echoMessages(conn, clientName)
 	closeConnection(conn, clientName)
 }
 
@@ -111,6 +105,14 @@ func receiveMessage(conn net.Conn) (message string) {
 	}
 	message = string(buf[0:n])
 	return
+}
+
+func broadcastMessage(message string) {
+	lock.Lock()
+	for _, conn := range clients {
+		sendMessage(conn, message)
+	}
+	lock.Unlock()
 }
 
 func StartServer() error {
