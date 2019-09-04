@@ -7,7 +7,9 @@ import (
 	"net"
 )
 
-const port = ":8001"
+const (
+	port = ":8001"
+)
 
 func listen() (net.Listener, error) {
 	ln, err := net.Listen("tcp", port)
@@ -27,34 +29,32 @@ func acceptConnections(ln net.Listener) error {
 			errors.Wrap(err, "Failed to accept connection request")
 			continue
 		}
-		log.Println("Handle client connection")
 		go handleClient(conn)
 	}
 }
 
 func handleClient(conn net.Conn) {
-	log.Println("Handling client.")
+	log.Println("Handling client...")
 	connRW := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 
 	// Send a message to the client
-	log.Println("Sending message.")
-	sendStringMessage(connRW, "You are connected to the server.\n")
-	log.Print("Message sent.")
+	sendStringMessage(connRW, "You are connected to the server, choose a username.\n")
+	log.Println("Message sent.")
 
 	// Receive a message from the client
-	log.Println("Receiving message.")
 	message, err := connRW.ReadString('\n')
 	if err != nil {
 		log.Println("Cannot read from connection.")
 	}
-	log.Println("Message received")
-	log.Println(message)
+	print(message)
 
 	// Close the connection
+	log.Println("Closing connection...")
 	err = conn.Close()
 	if err != nil {
 		log.Println("Closing connection failed.")
 	}
+	log.Println("Connection closed")
 }
 
 func sendStringMessage(connRW *bufio.ReadWriter, message string) {
