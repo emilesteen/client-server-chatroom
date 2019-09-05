@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -19,7 +19,7 @@ var buf [512]byte
 func startServer() error {
 	ln, err := listen()
 	if err != nil {
-		return errors.Wrap(err, "Unable to start server because of listen error.")
+		return fmt.Errorf("\nunable to start server: %v\n", err)
 	}
 	err = acceptConnections(ln)
 	return err
@@ -28,7 +28,7 @@ func startServer() error {
 func listen() (net.Listener, error) {
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to listen on port %s.\n", port)
+		return nil, fmt.Errorf("\nunable to listen on port: %s becaus of listen error: %v\n", port, err)
 	}
 	log.Println("Listening on port: " + ln.Addr().String())
 	return ln, nil
@@ -138,6 +138,6 @@ func broadcastMessage(message string) {
 func main() {
 	err := startServer()
 	if err != nil {
-		log.Println("Error:", errors.WithStack(err))
+		log.Fatal(err)
 	}
 }
