@@ -25,9 +25,6 @@ func startClientUI(ip string) {
 }
 
 func initUI(conn net.Conn) (tui.UI, *tui.Box) {
-	userList := tui.NewVBox(tui.NewLabel("User list:"), tui.NewSpacer())
-	userList.SetBorder(true)
-
 	messageArea := tui.NewVBox()
 	messageAreaScroll := tui.NewScrollArea(messageArea)
 	messageAreaBox := tui.NewVBox(messageAreaScroll)
@@ -50,7 +47,7 @@ func initUI(conn net.Conn) (tui.UI, *tui.Box) {
 		input.SetText("")
 	})
 
-	root := tui.NewHBox(userList, chat)
+	root := tui.NewHBox(chat)
 
 	ui, err := tui.New(root)
 	if err != nil {
