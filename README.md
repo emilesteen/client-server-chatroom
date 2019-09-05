@@ -1,6 +1,6 @@
 # client-server-chatroom
 
-Basic client server chatroom command line app
+Basic client server Terminal UI chatroom app
 
 ## Usage
 
