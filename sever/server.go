@@ -49,15 +49,30 @@ func acceptConnections(ln net.Listener) error {
 func handleClient(conn net.Conn) {
 	log.Println("Handling client...")
 	clientName := getClientName(conn)
+
+	if clientName == "!q\n" {
+		sendMessage(conn, "!q\n")
+		log.Println("Closing connection...")
+		err := conn.Close()
+		if err != nil {
+			log.Println("Closing connection failed.")
+		}
+		log.Println("Connection closed.")
+		return
+	}
+
 	echoMessages(conn, clientName)
 	closeConnection(conn, clientName)
 }
 
 func getClientName(conn net.Conn) (clientName string) {
-	sendMessage(conn, "You are connected to the server, choose a username.\n")
+	sendMessage(conn, "You are connected to the server, choose a username.")
 
 	for {
 		clientName = receiveMessage(conn)
+		if clientName == "!q\n" {
+			return
+		}
 		clientName = strings.TrimRight(clientName, "\n")
 		lock.Lock()
 		_, in := clients[clientName]
@@ -67,14 +82,14 @@ func getClientName(conn net.Conn) (clientName string) {
 			break
 		}
 		lock.Unlock()
-		sendMessage(conn, "The name is already taken, please choose another one.\n")
+		sendMessage(conn, "The name is already taken, please choose another one.")
 	}
 
-	sendMessage(conn, "Welcome to the room, "+clientName+"\n")
+	sendMessage(conn, "Welcome to the room, "+clientName)
 	lock.RLock()
 	for name, conn := range clients {
 		if name != clientName {
-			sendMessage(conn, clientName+" joined the room.\n")
+			sendMessage(conn, clientName+" joined the room.")
 		}
 	}
 	lock.RUnlock()
@@ -108,7 +123,7 @@ func closeConnection(conn net.Conn, clientName string) {
 	delete(clients, clientName)
 	lock.Unlock()
 
-	broadcastMessage(clientName + " left the room.\n")
+	broadcastMessage(clientName + " left the room.")
 }
 
 func sendMessage(conn net.Conn, message string) {

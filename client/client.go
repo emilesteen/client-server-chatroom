@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"sync"
 )
 
 const (
@@ -13,7 +12,6 @@ const (
 )
 
 var buf [512]byte
-var lock sync.RWMutex
 
 func startClientUI(ip string) {
 	conn := openConnection(ip)
