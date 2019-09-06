@@ -48,8 +48,12 @@ func acceptConnections(ln net.Listener) error {
 
 func handleClient(conn net.Conn) {
 	log.Println("Handling client...")
-	clientName := getClientName(conn)
 
+	clientName, err := getClientName(conn)
+	if err != nil {
+		log.Println("Error with connection: + " + conn.RemoteAddr().String() + ": " + err.Error())
+		return
+	}
 	if clientName == "!q\n" {
 		sendMessage(conn, "!q\n")
 		log.Println("Closing connection...")
@@ -61,24 +65,34 @@ func handleClient(conn net.Conn) {
 		return
 	}
 
-	echoMessages(conn, clientName)
+	err = echoMessages(conn, clientName)
+	if err != nil {
+		log.Println("Error with connection: + " + conn.RemoteAddr().String() + ": " + err.Error())
+		return
+	}
+
 	closeConnection(conn, clientName)
 }
 
-func getClientName(conn net.Conn) (clientName string) {
+func getClientName(conn net.Conn) (string, error) {
+	clientName := ""
 	sendMessage(conn, "You are connected to the server, choose a username. Press esc to quit.")
 
 	for {
-		clientName = receiveMessage(conn)
-		if clientName == "!q\n" {
-			return
+		receivedName, err := receiveMessage(conn)
+		if err != err {
+			return "", err
 		}
-		clientName = strings.TrimRight(clientName, "\n")
+		if receivedName == "!q\n" {
+			return "!q\n", nil
+		}
+		receivedName = strings.TrimRight(receivedName, "\n")
 		lock.Lock()
-		_, in := clients[clientName]
+		_, in := clients[receivedName]
 		if !in {
-			clients[clientName] = conn
+			clients[receivedName] = conn
 			lock.Unlock()
+			clientName = receivedName
 			break
 		}
 		lock.Unlock()
@@ -94,17 +108,24 @@ func getClientName(conn net.Conn) (clientName string) {
 	}
 	lock.RUnlock()
 
-	return
+	return clientName, nil
 }
 
-func echoMessages(conn net.Conn, clientName string) {
-	message := ""
+func echoMessages(conn net.Conn, clientName string) error {
 	pre := clientName + ": "
 	for {
-		message = receiveMessage(conn)
+		message, err := receiveMessage(conn)
+		if err != nil {
+			lock.Lock()
+			delete(clients, clientName)
+			lock.Unlock()
+
+			broadcastMessage(clientName + " left the room.")
+			return err
+		}
 		if message == "!q\n" {
 			sendMessage(conn, "!q\n")
-			break
+			return nil
 		} else {
 			broadcastMessage(pre + message)
 		}
@@ -133,10 +154,10 @@ func sendMessage(conn net.Conn, message string) {
 	}
 }
 
-func receiveMessage(conn net.Conn) (message string) {
+func receiveMessage(conn net.Conn) (message string, err error) {
 	n, err := conn.Read(buf[0:])
 	if err != nil {
-		log.Println("Read error.")
+		return
 	}
 	message = string(buf[0:n])
 	return
