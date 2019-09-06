@@ -37,11 +37,11 @@ func listen() (net.Listener, error) {
 func acceptConnections(ln net.Listener) error {
 	for {
 		conn, err := ln.Accept()
-		log.Println("Client connected with address: " + conn.RemoteAddr().String())
 		if err != nil {
 			log.Println("Failed to accept connection request.")
 			continue
 		}
+		log.Println("Client connected with address: " + conn.RemoteAddr().String())
 		go handleClient(conn)
 	}
 }
