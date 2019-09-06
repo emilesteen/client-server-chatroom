@@ -4,6 +4,7 @@ import (
 	"github.com/marcusolsson/tui-go"
 	"log"
 	"net"
+	"os"
 )
 
 const (
@@ -21,6 +22,17 @@ func startClientUI(ip string) {
 		log.Fatal(err)
 	}
 	closeConnection(conn)
+}
+
+func openConnection(ip string) (conn net.Conn) {
+	log.Println("Opening connection...")
+	addr := ip + port
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		log.Fatal("Dialing " + addr + " failed.")
+	}
+	log.Println("Connection open.")
+	return
 }
 
 func initUI(conn net.Conn) (tui.UI, *tui.Box) {
@@ -85,17 +97,6 @@ func uiReceiveMessagesRoutine(conn net.Conn, ui tui.UI, messageArea *tui.Box) {
 	}
 }
 
-func openConnection(ip string) (conn net.Conn) {
-	log.Println("Opening connection...")
-	addr := ip + port
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		log.Fatal("Dialing " + addr + " failed.")
-	}
-	log.Println("Connection open.")
-	return
-}
-
 func sendMessage(conn net.Conn, message string) error {
 	_, err := conn.Write([]byte(message))
 	return err
@@ -120,5 +121,11 @@ func closeConnection(conn net.Conn) {
 }
 
 func main() {
-	startClientUI("127.0.0.1")
+	if len(os.Args) < 2 {
+		// Connect to localhost by default
+		startClientUI("127.0.0.1")
+	} else {
+		// If IP address is supplied, connect to the given address
+		startClientUI(os.Args[1])
+	}
 }

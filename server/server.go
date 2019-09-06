@@ -147,6 +147,14 @@ func closeConnection(conn net.Conn, clientName string) {
 	broadcastMessage(clientName + " left the room.")
 }
 
+func broadcastMessage(message string) {
+	lock.RLock()
+	for _, conn := range clients {
+		sendMessage(conn, message)
+	}
+	lock.RUnlock()
+}
+
 func sendMessage(conn net.Conn, message string) {
 	_, err := conn.Write([]byte(message))
 	if err != nil {
@@ -161,14 +169,6 @@ func receiveMessage(conn net.Conn) (message string, err error) {
 	}
 	message = string(buf[0:n])
 	return
-}
-
-func broadcastMessage(message string) {
-	lock.RLock()
-	for _, conn := range clients {
-		sendMessage(conn, message)
-	}
-	lock.RUnlock()
 }
 
 func main() {
