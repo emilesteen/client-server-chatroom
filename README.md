@@ -3,6 +3,10 @@
 Basic client server Terminal UI chatroom app
 
 ## Usage
+```
+git clone https://github.com/emilesteen/client-server-chatroom.git
+cd client-server-chatroom
+```
 
 To start the server:<br/>
 ```
