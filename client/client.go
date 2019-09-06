@@ -26,6 +26,7 @@ func startClientUI(ip string) {
 func initUI(conn net.Conn) (tui.UI, *tui.Box) {
 	messageArea := tui.NewVBox()
 	messageAreaScroll := tui.NewScrollArea(messageArea)
+	messageAreaScroll.SetAutoscrollToBottom(true)
 	messageAreaBox := tui.NewVBox(messageAreaScroll)
 	messageAreaBox.SetBorder(true)
 

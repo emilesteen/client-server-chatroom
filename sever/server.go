@@ -30,7 +30,7 @@ func listen() (net.Listener, error) {
 	if err != nil {
 		return nil, fmt.Errorf("\nunable to listen on port: %s because of listen error: %v", port, err)
 	}
-	log.Println("Listening on port: " + ln.Addr().String())
+	log.Println("Listening on address: " + ln.Addr().String())
 	return ln, nil
 }
 
