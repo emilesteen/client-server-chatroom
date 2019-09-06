@@ -43,7 +43,11 @@ func initUI(conn net.Conn) (tui.UI, *tui.Box) {
 
 	input.OnSubmit(func(e *tui.Entry) {
 		message := e.Text()
-		sendMessage(conn, message)
+		err := sendMessage(conn, message)
+		if err != nil {
+			message = "You are not connected to the server, you can not send messages."
+			messageArea.Append(tui.NewHBox(tui.NewLabel(message), tui.NewSpacer()))
+		}
 		input.SetText("")
 	})
 
@@ -56,7 +60,7 @@ func initUI(conn net.Conn) (tui.UI, *tui.Box) {
 
 	ui.SetKeybinding("Esc", func() {
 		ui.Quit()
-		sendMessage(conn, "!q\n")
+		err = sendMessage(conn, "!q\n")
 	})
 
 	return ui, messageArea
@@ -64,7 +68,14 @@ func initUI(conn net.Conn) (tui.UI, *tui.Box) {
 
 func uiReceiveMessagesRoutine(conn net.Conn, ui tui.UI, messageArea *tui.Box) {
 	for {
-		message := receiveMessage(conn)
+		message, err := receiveMessage(conn)
+		if err != nil {
+			message = "You disconnected from the server, you are no longer receiving messages."
+			ui.Update(func() {
+				messageArea.Append(tui.NewHBox(tui.NewLabel(message), tui.NewSpacer()))
+			})
+			return
+		}
 		if message == "!q\n" {
 			break
 		}
@@ -85,17 +96,15 @@ func openConnection(ip string) (conn net.Conn) {
 	return
 }
 
-func sendMessage(conn net.Conn, message string) {
+func sendMessage(conn net.Conn, message string) error {
 	_, err := conn.Write([]byte(message))
-	if err != nil {
-		log.Println("Cannot write to connection.")
-	}
+	return err
 }
 
-func receiveMessage(conn net.Conn) (message string) {
+func receiveMessage(conn net.Conn) (message string, err error) {
 	n, err := conn.Read(buf[0:])
 	if err != nil {
-		log.Println("Cannot read from connection.")
+		return
 	}
 	message = string(buf[0:n])
 	return
