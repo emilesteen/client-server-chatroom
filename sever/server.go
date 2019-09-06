@@ -28,7 +28,7 @@ func startServer() error {
 func listen() (net.Listener, error) {
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
-		return nil, fmt.Errorf("\nunable to listen on port: %s becaus of listen error: %v\n", port, err)
+		return nil, fmt.Errorf("\nunable to listen on port: %s because of listen error: %v", port, err)
 	}
 	log.Println("Listening on port: " + ln.Addr().String())
 	return ln, nil
@@ -37,7 +37,7 @@ func listen() (net.Listener, error) {
 func acceptConnections(ln net.Listener) error {
 	for {
 		conn, err := ln.Accept()
-		log.Println("Client connected with address: " + conn.LocalAddr().String())
+		log.Println("Client connected with address: " + conn.RemoteAddr().String())
 		if err != nil {
 			log.Println("Failed to accept connection request.")
 			continue
@@ -57,7 +57,7 @@ func handleClient(conn net.Conn) {
 		if err != nil {
 			log.Println("Closing connection failed.")
 		}
-		log.Println("Connection closed.")
+		log.Println("Connection with address: " + conn.RemoteAddr().String() + " closed.")
 		return
 	}
 
@@ -66,7 +66,7 @@ func handleClient(conn net.Conn) {
 }
 
 func getClientName(conn net.Conn) (clientName string) {
-	sendMessage(conn, "You are connected to the server, choose a username.")
+	sendMessage(conn, "You are connected to the server, choose a username. Press esc to quit.")
 
 	for {
 		clientName = receiveMessage(conn)
@@ -117,7 +117,7 @@ func closeConnection(conn net.Conn, clientName string) {
 	if err != nil {
 		log.Println("Closing connection failed.")
 	}
-	log.Println("Connection closed.")
+	log.Println("Connection with address: " + conn.RemoteAddr().String() + " closed.")
 
 	lock.Lock()
 	delete(clients, clientName)

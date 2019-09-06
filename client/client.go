@@ -4,7 +4,6 @@ import (
 	"github.com/marcusolsson/tui-go"
 	"log"
 	"net"
-	"os"
 )
 
 const (
@@ -79,7 +78,7 @@ func openConnection(ip string) (conn net.Conn) {
 	addr := ip + port
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Println("Dialing " + addr + " failed.")
+		log.Fatal("Dialing " + addr + " failed.")
 	}
 	log.Println("Connection open.")
 	return
@@ -96,7 +95,6 @@ func receiveMessage(conn net.Conn) (message string) {
 	n, err := conn.Read(buf[0:])
 	if err != nil {
 		log.Println("Cannot read from connection.")
-		os.Exit(5)
 	}
 	message = string(buf[0:n])
 	return
