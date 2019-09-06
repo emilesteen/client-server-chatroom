@@ -51,7 +51,7 @@ func handleClient(conn net.Conn) {
 
 	clientName, err := getClientName(conn)
 	if err != nil {
-		log.Println("Error with connection: + " + conn.RemoteAddr().String() + ": " + err.Error())
+		log.Println("Error with connection: " + conn.RemoteAddr().String() + ": " + err.Error())
 		return
 	}
 	if clientName == "!q\n" {
