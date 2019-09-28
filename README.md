@@ -6,7 +6,7 @@ Basic client server Terminal UI chatroom app
 ```
 go get -u github.com/emilesteen/client-server-chatroom/server
 go get -u github.com/emilesteen/client-server-chatroom/client
-cd ~/go/github.com/emilesteen/client-server-chatroom
+cd ~/go/src/github.com/emilesteen/client-server-chatroom
 ```
 
 To start the server:<br/>
