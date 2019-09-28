@@ -4,8 +4,9 @@ Basic client server Terminal UI chatroom app
 
 ## Usage
 ```
-git clone https://github.com/emilesteen/client-server-chatroom.git
-cd client-server-chatroom
+go get -u github.com/emilesteen/client-server-chatroom/server
+go get -u github.com/emilesteen/client-server-chatroom/client
+cd ~/go/github.com/emilesteen/client-server-chatroom
 ```
 
 To start the server:<br/>
