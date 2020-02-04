@@ -91,10 +91,10 @@ func getClientName(conn net.Conn) (string, error) {
 		_, in := clients[receivedName]
 		lock.RUnlock()
 		if !in {
-			clients[receivedName] = conn
 			lock.Lock()
-			clientName = receivedName
+			clients[receivedName] = conn
 			lock.Unlock()
+			clientName = receivedName
 			break
 		}
 		sendMessage(conn, "The name is already taken, please choose another one.")
