@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -8,16 +9,12 @@ import (
 	"sync"
 )
 
-const (
-	port = ":8001"
-)
-
 var clients = make(map[string]net.Conn)
 var lock = sync.RWMutex{}
 var buf [512]byte
 
-func startServer() error {
-	ln, err := listen()
+func startServer(port string) error {
+	ln, err := listen(port)
 	if err != nil {
 		return fmt.Errorf("\nunable to start server: %v\n", err)
 	}
@@ -25,8 +22,8 @@ func startServer() error {
 	return err
 }
 
-func listen() (net.Listener, error) {
-	ln, err := net.Listen("tcp", port)
+func listen(port string) (net.Listener, error) {
+	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return nil, fmt.Errorf("\nunable to listen on port: %s because of listen error: %v", port, err)
 	}
@@ -173,7 +170,14 @@ func receiveMessage(conn net.Conn) (message string, err error) {
 }
 
 func main() {
-	err := startServer()
+	var port string
+
+	flag.StringVar(&port, "port", "8001", "port on which the server will listen for new connections")
+	flag.Parse()
+
+	println(port)
+
+	err := startServer(port)
 	if err != nil {
 		log.Fatal(err)
 	}

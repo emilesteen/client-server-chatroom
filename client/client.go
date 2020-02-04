@@ -1,21 +1,17 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net"
-	"os"
 
 	"github.com/marcusolsson/tui-go"
 )
 
-const (
-	port = ":8001"
-)
-
 var buf [512]byte
 
-func startClientUI(ip string) {
-	conn := openConnection(ip)
+func startClientUI(serverIp string, port string) {
+	conn := openConnection(serverIp, port)
 	ui, messageArea := initUI(conn)
 
 	go uiReceiveMessagesRoutine(conn, ui, messageArea)
@@ -25,9 +21,9 @@ func startClientUI(ip string) {
 	closeConnection(conn)
 }
 
-func openConnection(ip string) (conn net.Conn) {
+func openConnection(serverIp string, port string) (conn net.Conn) {
 	log.Println("Opening connection...")
-	addr := ip + port
+	addr := serverIp + ":" + port
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		log.Fatal("Dialing " + addr + " failed.")
@@ -122,11 +118,15 @@ func closeConnection(conn net.Conn) {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		// Connect to localhost by default
-		startClientUI("127.0.0.1")
-	} else {
-		// If IP address is supplied, connect to the given address
-		startClientUI(os.Args[1])
-	}
+	var serverIp string
+	var port string
+
+	flag.StringVar(&serverIp, "ip", "127.0.0.1", "IP address of chat server")
+	flag.StringVar(&port, "port", "8001", "port where chat server is listening for new connections")
+	flag.Parse()
+
+	println(port)
+	println(serverIp)
+
+	startClientUI(serverIp, port)
 }

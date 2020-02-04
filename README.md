@@ -1,21 +1,30 @@
 # client-server-chatroom
 
-Basic client server Terminal UI chatroom app
+Implementation of a client-server chatroom
 
-## Usage
+## Installation
 ```
 go get -u github.com/emilesteen/client-server-chatroom/server
 go get -u github.com/emilesteen/client-server-chatroom/client
 cd ~/go/src/github.com/emilesteen/client-server-chatroom
 ```
 
+## Usage
 To start the server:<br/>
 ```
 go run server/server.go
 ```
 
+|Option|Description|Default|
+|--|--|--|
+|-port|Port where the server should listen for new connections|8001|
+
+
 To start a new client:<br/>
 ```
-go run client/client.go [ip address]
+go run client/client.go
 ```
-[ip address] -> server address, if no argument is given, the address defaults to localhost
+|Option|Description|default|
+|--|--|--|
+|-ip|IP address of the chat server|127.0.0.1|
+|-port|Port where the server is listening for new connections|8001|
