@@ -87,15 +87,16 @@ func getClientName(conn net.Conn) (string, error) {
 			return "!q\n", nil
 		}
 		receivedName = strings.TrimRight(receivedName, "\n")
-		lock.Lock()
+		lock.RLock()
 		_, in := clients[receivedName]
+		lock.RUnlock()
 		if !in {
 			clients[receivedName] = conn
-			lock.Unlock()
+			lock.Lock()
 			clientName = receivedName
+			lock.Unlock()
 			break
 		}
-		lock.Unlock()
 		sendMessage(conn, "The name is already taken, please choose another one.")
 	}
 

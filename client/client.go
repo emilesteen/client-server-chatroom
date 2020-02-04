@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/marcusolsson/tui-go"
 	"log"
 	"net"
 	"os"
+
+	"github.com/marcusolsson/tui-go"
 )
 
 const (
