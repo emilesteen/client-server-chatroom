@@ -175,8 +175,6 @@ func main() {
 	flag.StringVar(&port, "port", "8001", "port on which the server will listen for new connections")
 	flag.Parse()
 
-	println(port)
-
 	err := startServer(port)
 	if err != nil {
 		log.Fatal(err)

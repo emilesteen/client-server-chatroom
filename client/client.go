@@ -125,8 +125,5 @@ func main() {
 	flag.StringVar(&port, "port", "8001", "port where chat server is listening for new connections")
 	flag.Parse()
 
-	println(port)
-	println(serverIp)
-
 	startClientUI(serverIp, port)
 }
