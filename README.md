@@ -6,12 +6,12 @@ Implementation of a client-server chatroom
 ```
 go get -u github.com/emilesteen/client-server-chatroom/server
 go get -u github.com/emilesteen/client-server-chatroom/client
-cd ~/go/src/github.com/emilesteen/client-server-chatroom
 ```
 
 ## Usage
 To start the server:<br/>
 ```
+cd $GOPATH/src/github.com/emilesteen/client-server-chatroom
 go run server/server.go
 ```
 
