@@ -101,7 +101,7 @@ func getClientName(conn net.Conn) (string, error) {
 	lock.RLock()
 	for name, conn := range clients {
 		if name != clientName {
-			sendMessage(conn, clientName+" joined the room.")
+			go sendMessage(conn, clientName+" joined the room.")
 		}
 	}
 	lock.RUnlock()
@@ -148,7 +148,7 @@ func closeConnection(conn net.Conn, clientName string) {
 func broadcastMessage(message string) {
 	lock.RLock()
 	for _, conn := range clients {
-		sendMessage(conn, message)
+		go sendMessage(conn, message)
 	}
 	lock.RUnlock()
 }
