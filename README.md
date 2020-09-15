@@ -1,6 +1,6 @@
 # client-server-chatroom
 
-Implementation of a client-server chatroom in go.
+Implementation of a client-server chatroom in Go.
 
 ![screenshot](https://github.com/emilesteen/client-server-chatroom/blob/master/resources/images/screenshot.png)
 
